@@ -147,13 +147,25 @@
       `;
     }
 
-    ['gcdInput', 'numInput', 'denInput'].forEach(id => {
-      document.getElementById(id).addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') check();
-      });
+     document.getElementById('gcdInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('numInput').focus();
+      }
+    });
+
+    document.getElementById('numInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('denInput').focus();
+      }
+    });
+
+    document.getElementById('denInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        check();
+      }
     });
 
     start();
-  </script>
-</body>
-</html>
