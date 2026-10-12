@@ -8,10 +8,10 @@
     h1 { margin-bottom: 10px; }
     .progress { color: #666; font-size: 14px; margin-bottom: 20px; }
     .task { font-size: 28px; margin: 30px 0; font-family: monospace; }
-    .answer-row { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .answer-row { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
     .field { display: flex; flex-direction: column; align-items: center; }
     .field label { font-size: 13px; color: #666; margin-bottom: 4px; }
-    input { font-size: 20px; padding: 8px; width: 80px; font-family: monospace; text-align: center; }
+    .field input { font-size: 20px; padding: 8px; width: 80px; font-family: monospace; text-align: center; }
     button { font-size: 18px; padding: 8px 20px; cursor: pointer; }
     .feedback { font-size: 18px; margin-top: 10px; min-height: 24px; }
     .correct { color: green; }
@@ -33,26 +33,57 @@
       display: block;
       padding: 0 6px;
     }
+    .fraction-input {
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .fraction-input input {
+      display: block;
+      width: 80px;
+      text-align: center;
+      border: none;
+      border-bottom: 2px solid #000;
+      padding: 4px;
+      font-size: 20px;
+      font-family: monospace;
+      outline: none;
+    }
+    .fraction-input input:last-child {
+      border-bottom: none;
+    }
+    .setup { margin: 30px 0; }
+    .setup label { display: block; margin-bottom: 10px; font-size: 18px; }
+    .setup select { font-size: 18px; padding: 8px; }
+    .setup button { margin-top: 20px; font-size: 20px; padding: 10px 30px; }
   </style>
 </head>
 <body>
   <h1>Сокращение дробей</h1>
-  <div class="progress" id="progress"></div>
 
-  <div id="quiz">
+  <div class="setup" id="setup">
+    <label>Количество вопросов в наборе:</label>
+    <select id="totalSelect">
+      <option value="10">10</option>
+      <option value="20" selected>20</option>
+      <option value="30">30</option>
+      <option value="50">50</option>
+    </select>
+    <br>
+    <button onclick="start()">Начать</button>
+  </div>
+
+  <div id="quiz" class="hidden">
+    <div class="progress" id="progress"></div>
     <div class="task" id="task"></div>
     <div class="answer-row">
       <div class="field">
         <label>НОД</label>
         <input type="number" id="gcdInput" autocomplete="off">
       </div>
-      <div class="field">
-        <label>Числитель</label>
-        <input type="number" id="numInput" autocomplete="off">
-      </div>
-      <div class="field">
-        <label>Знаменатель</label>
-        <input type="number" id="denInput" autocomplete="off">
+      <div class="fraction-input">
+        <input type="number" id="numInput" autocomplete="off" placeholder="числ.">
+        <input type="number" id="denInput" autocomplete="off" placeholder="знам.">
       </div>
       <button onclick="check()">Проверить</button>
     </div>
@@ -62,7 +93,7 @@
   <div class="final hidden" id="final"></div>
 
   <script>
-    const TOTAL = 20;
+    let TOTAL = 20;
     let current = 0;
     let correct = 0;
     let tasks = [];
@@ -75,8 +106,8 @@
     function generateTask() {
       let a, b, g;
       do {
-        a = Math.floor(Math.random() * 49) + 2;
-        b = Math.floor(Math.random() * 49) + 2;
+        a = Math.floor(Math.random() * 79) + 2;
+        b = Math.floor(Math.random() * 79) + 2;
         g = gcd(a, b);
       } while (g === 1 || a === b);
 
@@ -92,7 +123,7 @@
       const set = [];
       const used = new Set();
       let attempts = 0;
-      while (set.length < TOTAL && attempts < 2000) {
+      while (set.length < TOTAL && attempts < 5000) {
         attempts++;
         const t = generateTask();
         const key = t.a + '/' + t.b;
@@ -104,9 +135,11 @@
     }
 
     function start() {
+      TOTAL = parseInt(document.getElementById('totalSelect').value);
       tasks = generateSet();
       current = 0;
       correct = 0;
+      document.getElementById('setup').classList.add('hidden');
       document.getElementById('quiz').classList.remove('hidden');
       document.getElementById('final').classList.add('hidden');
       showTask();
@@ -138,10 +171,14 @@
 
       if (allCorrect) {
         correct++;
-        fb.textContent = '✅ Верно!';
+        fb.innerHTML = '✅ Верно!';
         fb.className = 'feedback correct';
       } else {
-        fb.textContent = `❌ Неверно. Правильно: НОД = ${t.gcd}, ${t.newNum} / ${t.newDen}`;
+        fb.innerHTML = `❌ Неверно. Правильно: НОД = ${t.gcd}, 
+          <span class="fraction">
+            <span class="num">${t.newNum}</span>
+            <span class="den">${t.newDen}</span>
+          </span>`;
         fb.className = 'feedback wrong';
       }
 
@@ -160,8 +197,13 @@
       final.innerHTML = `
         <h2>Набор завершён!</h2>
         <p>Правильных ответов: <b>${correct} из ${TOTAL}</b> (${percent}%)</p>
-        <button onclick="start()">Новый набор</button>
+        <button onclick="reset()">Новый набор</button>
       `;
+    }
+
+    function reset() {
+      document.getElementById('final').classList.add('hidden');
+      document.getElementById('setup').classList.remove('hidden');
     }
 
     document.getElementById('gcdInput').addEventListener('keypress', (e) => {
@@ -184,8 +226,6 @@
         check();
       }
     });
-
-    start();
   </script>
 </body>
 </html>
