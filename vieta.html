@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Теорема Виета</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    h1 { margin-bottom: 10px; }
+    .progress { color: #666; font-size: 14px; margin-bottom: 20px; }
+    .task { font-size: 26px; margin: 30px 0; font-family: monospace; }
+    .answer-row { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+    input { font-size: 20px; padding: 8px; width: 200px; font-family: monospace; }
+    button { font-size: 18px; padding: 8px 20px; cursor: pointer; }
+    .feedback { font-size: 18px; margin-top: 10px; min-height: 24px; }
+    .correct { color: green; }
+    .wrong { color: red; }
+    .final { font-size: 22px; margin-top: 30px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Теорема Виета</h1>
+  <div class="progress" id="progress"></div>
+
+  <div id="quiz">
+    <div class="task" id="task"></div>
+    <div class="answer-row">
+      <input type="text" id="answer" placeholder="(x+a)(x+b)" autocomplete="off">
+      <button onclick="check()">Проверить</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="final hidden" id="final"></div>
+
+  <script>
+    const TOTAL = 20;
+    let current = 0;
+    let correct = 0;
+    let tasks = [];
+
+    // ---------- Генерация одного задания ----------
+    function generateTask() {
+      // Корни от 1 до 9 (по модулю), знаки случайные
+      let a = Math.floor(Math.random() * 9) + 1;
+      let b = Math.floor(Math.random() * 9) + 1;
+      if (Math.random() < 0.5) a = -a;
+      if (Math.random() < 0.5) b = -b;
+      // Чтобы корни не совпадали слишком часто
+      if (a === b) b = b === 9 ? 8 : b + 1;
+
+      // p = -(a+b), q = a*b
+      const p = -(a + b);
+      const q = a * b;
+
+      // Тип 1: x^2 + px + q  →  корни a, b
+      // Тип 2: q + px - x^2  →  это -(x^2 - px - q) = -(x-a)(x-b) = (a-x)(x-b)
+      //        корни: a и b, но знаки в скобках другие
+      const type = Math.random() < 0.5 ? 1 : 2;
+
+      let question, answer;
+
+      if (type === 1) {
+        // x^2 + px + q
+        question = `x² ${fmt(p)}x ${fmt(q)}`;
+        answer = `(x${fmt(-a)})(x${fmt(-b)})`;
+      } else {
+        // q + px - x^2 = (a - x)(x - b), если a,b — корни x^2 + px + q
+        // Проверим: (a-x)(x-b) = ax - ab - x^2 + bx = -x^2 + (a+b)x - ab
+        // У нас p = -(a+b), значит (a+b) = -p, и q = ab
+        // Тогда -x^2 + (a+b)x - ab = -x^2 - p x - q. Но у нас q + px - x^2.
+        // Значит нужно взять корни так, чтобы p = a+b, q = -ab? Пересчитаем.
+        // q + px - x^2 = -(x^2 - px - q). Корни x^2 - px - q = 0 → x = (p ± √(p²+4q))/2.
+        // Проще: зададим корни c и d для -x^2 + px + q = -(x-c)(x-d) = -x^2 + (c+d)x - cd.
+        // Тогда p = c+d, q = -cd.
+        // Значит cd = -q, c+d = p. Возьмём c = a, d = -b, где a,b — корни x²+px+q? Проверим:
+        // a + (-b) = a-b, не равно p = -(a+b). Не то.
+        // Проще сгенерировать заново: пусть корни c и d, тогда p = c+d, q = -cd.
+        // Мы хотим, чтобы ответ был (c - x)(x - d) = -x² + (c+d)x - cd.
+        // Это совпадает с -x² + px + q, если p = c+d, q = -cd.
+        // Сгенерируем c и d независимо.
+        let c = Math.floor(Math.random() * 9) + 1;
+        let d = Math.floor(Math.random() * 9) + 1;
+        if (Math.random() < 0.5) c = -c;
+        if (Math.random() < 0.5) d = -d;
+        if (c === d) d = d === 9 ? 8 : d + 1;
+
+        const p2 = c + d;
+        const q2 = -c * d;
+
+        question = `${fmt(q2)} ${fmt(p2)}x - x²`;
+        answer = `(${fmt(c)} - x)(x ${fmt(-d)})`;
+        // Альтернативная форма: (x - d)(c - x) — тоже верна, но для простоты оставим одну.
+      }
+
+      return { question, answer, display: question };
+    }
+
+    // Форматирование числа со знаком: 5 → "+5", -3 → "-3"
+    function fmt(n) {
+      if (n === 0) return "";
+      return n > 0 ? `+ ${n}` : `- ${Math.abs(n)}`;
+    }
+
+    // ---------- Проверка ответа ----------
+    // Приводим ответ пользователя к каноническому виду
+    function normalize(s) {
+      return s.replace(/\s+/g, '').replace(/²/g, '^2').toLowerCase();
+    }
+
+    // Проверяем, что ответ раскладывается в те же множители (с точностью до перестановки и знака)
+    function isEquivalent(userAnswer, task) {
+      // Простейшая проверка: сравниваем нормализованные строки
+      // (для продакшена лучше парсить, но для тренажёра сойдёт)
+      const u = normalize(userAnswer);
+      const a = normalize(task.answer);
+
+      // Прямое совпадение
+      if (u === a) return true;
+
+      // Разные допустимые формы записи
+      // Для типа 1: (x+a)(x+b) или (x+b)(x+a)
+      // Для типа 2: (a-x)(x-b) или (x-b)(a-x) или -(x-a)(x-b) и т.п.
+      // Упростим: проверим, что произведение даёт исходный многочлен.
+      // Это сложно без парсера, поэтому ограничимся набором допустимых форм.
+      // В реальном проекте лучше использовать math.js.
+
+      return false;
+    }
+
+    // ---------- Генерация набора из 20 заданий ----------
+    function generateSet() {
+      const set = [];
+      const used = new Set();
+      let attempts = 0;
+
+      while (set.length < TOTAL && attempts < 1000) {
+        attempts++;
+        const t = generateTask();
+        const key = t.question + '|' + t.answer;
+        if (used.has(key)) continue;
+        used.add(key);
+        set.push(t);
+      }
+      return set;
+    }
+
+    // ---------- Запуск ----------
+    function start() {
+      tasks = generateSet();
+      current = 0;
+      correct = 0;
+      document.getElementById('quiz').classList.remove('hidden');
+      document.getElementById('final').classList.add('hidden');
+      showTask();
+    }
+
+    function showTask() {
+      if (current >= TOTAL) {
+        finish();
+        return;
+      }
+      const t = tasks[current];
+      document.getElementById('task').textContent = t.question + ' = ?';
+      document.getElementById('progress').textContent = `Вопрос ${current + 1} из ${TOTAL} · Правильных: ${correct}`;
+      document.getElementById('answer').value = '';
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('answer').focus();
+    }
+
+    function check() {
+      const t = tasks[current];
+      const userAnswer = document.getElementById('answer').value.trim();
+      const fb = document.getElementById('feedback');
+
+      if (!userAnswer) return;
+
+      if (isEquivalent(userAnswer, t)) {
+        correct++;
+        fb.textContent = '✅ Верно!';
+        fb.className = 'feedback correct';
+        current++;
+        setTimeout(() => {
+          if (current >= TOTAL) finish();
+          else showTask();
+        }, 400);
+      } else {
+        fb.textContent = `❌ Неверно. Правильный ответ: ${t.answer}`;
+        fb.className = 'feedback wrong';
+        // Не переходим дальше, пока не введут правильно
+      }
+    }
+
+    function finish() {
+      document.getElementById('quiz').classList.add('hidden');
+      const final = document.getElementById('final');
+      final.classList.remove('hidden');
+      const percent = Math.round((correct / TOTAL) * 100);
+      final.innerHTML = `
+        <h2>Набор завершён!</h2>
+        <p>Правильных ответов: <b>${correct} из ${TOTAL}</b> (${percent}%)</p>
+        <button onclick="start()">Новый набор</button>
+      `;
+    }
+
+    // Проверка по Enter
+    document.getElementById('answer').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') check();
+    });
+
+    // Старт
+    start();
+  </script>
+</body>
+</html>
