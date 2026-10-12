@@ -124,16 +124,16 @@
         correct++;
         fb.textContent = '✅ Верно!';
         fb.className = 'feedback correct';
-        current++;
-        setTimeout(() => {
-          if (current >= TOTAL) finish();
-          else showTask();
-        }, 400);
       } else {
         fb.textContent = `❌ Неверно. Правильно: НОД = ${t.gcd}, ${t.newNum} / ${t.newDen}`;
         fb.className = 'feedback wrong';
       }
-    }
+
+      current++;
+      setTimeout(() => {
+        if (current >= TOTAL) finish();
+        else showTask();
+      }, 700);
 
     function finish() {
       document.getElementById('quiz').classList.add('hidden');
