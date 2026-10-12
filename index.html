@@ -2,74 +2,41 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Тренажёр: НОД и НОК</title>
+  <title>Математические тренажёры</title>
   <style>
-    body { font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; }
-    .task { font-size: 24px; margin: 20px 0; }
-    input { font-size: 20px; width: 100px; padding: 5px; }
-    button { font-size: 18px; padding: 8px 20px; margin-top: 10px; cursor: pointer; }
-    .result { font-size: 20px; margin-top: 15px; }
-    .correct { color: green; }
-    .wrong { color: red; }
+    body { font-family: sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { margin-bottom: 30px; }
+    .trainer {
+      display: block;
+      padding: 20px;
+      margin: 15px 0;
+      background: #f4f4f4;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #222;
+      transition: background 0.2s;
+    }
+    .trainer:hover { background: #e0e0e0; }
+    .trainer h2 { margin: 0 0 8px 0; font-size: 20px; }
+    .trainer p { margin: 0; color: #666; font-size: 14px; }
   </style>
 </head>
 <body>
-  <h1>НОД и НОК</h1>
-  <div class="task" id="task">Загрузка...</div>
-  <input type="number" id="answer" placeholder="Ответ">
-  <button onclick="check()">Проверить</button>
-  <button onclick="next()">Дальше</button>
-  <div class="result" id="result"></div>
+  <h1>Математические тренажёры</h1>
 
-  <script>
-    let a, b, correctAnswer, mode;
+  <a class="trainer" href="nod-nok.html">
+    <h2>НОД и НОК</h2>
+    <p>Нахождение наибольшего общего делителя и наименьшего общего кратного в уме</p>
+  </a>
 
-    function gcd(x, y) {
-      while (y) { [x, y] = [y, x % y]; }
-      return x;
-    }
+  <a class="trainer" href="vieta.html">
+    <h2>Теорема Виета</h2>
+    <p>Разложение квадратного трёхчлена на множители</p>
+  </a>
 
-    function next() {
-      // Генерируем два числа от 2 до 30
-      a = Math.floor(Math.random() * 29) + 2;
-      b = Math.floor(Math.random() * 29) + 2;
-      
-      // Случайно выбираем: НОД или НОК
-      mode = Math.random() < 0.5 ? 'НОД' : 'НОК';
-      
-      if (mode === 'НОД') {
-        correctAnswer = gcd(a, b);
-      } else {
-        correctAnswer = (a * b) / gcd(a, b);
-      }
-      
-      document.getElementById('task').textContent = 
-        `Найдите ${mode}(${a}, ${b})`;
-      document.getElementById('answer').value = '';
-      document.getElementById('result').textContent = '';
-      document.getElementById('answer').focus();
-    }
-
-    function check() {
-      const userAnswer = parseInt(document.getElementById('answer').value);
-      const resultEl = document.getElementById('result');
-      
-      if (userAnswer === correctAnswer) {
-        resultEl.textContent = '✅ Верно!';
-        resultEl.className = 'result correct';
-      } else {
-        resultEl.textContent = `❌ Неверно. Правильный ответ: ${correctAnswer}`;
-        resultEl.className = 'result wrong';
-      }
-    }
-
-    // Запуск
-    next();
-    
-    // Проверка по Enter
-    document.getElementById('answer').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') check();
-    });
-  </script>
+  <a class="trainer" href="simplify.html">
+    <h2>Упрощение выражений</h2>
+    <p>Символьные преобразования алгебраических выражений</p>
+  </a>
 </body>
 </html>
