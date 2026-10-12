@@ -18,6 +18,21 @@
     .wrong { color: red; }
     .final { font-size: 22px; margin-top: 30px; }
     .hidden { display: none; }
+    .fraction {
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+      margin: 0 4px;
+    }
+    .fraction .num {
+      display: block;
+      border-bottom: 2px solid #000;
+      padding: 0 6px;
+    }
+    .fraction .den {
+      display: block;
+      padding: 0 6px;
+    }
   </style>
 </head>
 <body>
@@ -100,7 +115,8 @@
     function showTask() {
       if (current >= TOTAL) { finish(); return; }
       const t = tasks[current];
-      document.getElementById('task').textContent = `Сократите: ${t.a} / ${t.b}`;
+      document.getElementById('task').innerHTML = 
+        `Сократите: <span class="fraction"><span class="num">${t.a}</span><span class="den">${t.b}</span></span>`;
       document.getElementById('progress').textContent = `Вопрос ${current + 1} из ${TOTAL} · Правильных: ${correct}`;
       document.getElementById('gcdInput').value = '';
       document.getElementById('numInput').value = '';
@@ -135,6 +151,7 @@
         else showTask();
       }, 700);
     }
+
     function finish() {
       document.getElementById('quiz').classList.add('hidden');
       const final = document.getElementById('final');
@@ -147,7 +164,7 @@
       `;
     }
 
-     document.getElementById('gcdInput').addEventListener('keypress', (e) => {
+    document.getElementById('gcdInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         document.getElementById('numInput').focus();
@@ -169,6 +186,6 @@
     });
 
     start();
- </script>
+  </script>
 </body>
 </html>
