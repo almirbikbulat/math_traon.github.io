@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Сокращение дробей</title>
   <style>
     body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
@@ -56,6 +57,45 @@
     .setup label { display: block; margin-bottom: 10px; font-size: 18px; }
     .setup select { font-size: 18px; padding: 8px; }
     .setup button { margin-top: 20px; font-size: 20px; padding: 10px 30px; }
+    @media (max-width: 600px) {
+  body {
+    padding: 0 12px;
+    margin: 20px auto;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  .task {
+    font-size: 22px;
+  }
+  .answer-row {
+    gap: 10px;
+  }
+  .field input,
+  .fraction-input input {
+    width: 60px;
+    font-size: 18px;
+    padding: 6px;
+  }
+  .fraction {
+    font-size: 22px;
+  }
+  button {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+  .setup select {
+    font-size: 16px;
+    padding: 6px;
+  }
+  .setup button {
+    font-size: 18px;
+    padding: 10px 24px;
+  }
+  .final {
+    font-size: 18px;
+  }
+}
   </style>
 </head>
 <body>
