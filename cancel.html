@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Сокращение дробей</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    h1 { margin-bottom: 10px; }
+    .progress { color: #666; font-size: 14px; margin-bottom: 20px; }
+    .task { font-size: 28px; margin: 30px 0; font-family: monospace; }
+    .answer-row { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .field { display: flex; flex-direction: column; align-items: center; }
+    .field label { font-size: 13px; color: #666; margin-bottom: 4px; }
+    input { font-size: 20px; padding: 8px; width: 80px; font-family: monospace; text-align: center; }
+    button { font-size: 18px; padding: 8px 20px; cursor: pointer; }
+    .feedback { font-size: 18px; margin-top: 10px; min-height: 24px; }
+    .correct { color: green; }
+    .wrong { color: red; }
+    .final { font-size: 22px; margin-top: 30px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Сокращение дробей</h1>
+  <div class="progress" id="progress"></div>
+
+  <div id="quiz">
+    <div class="task" id="task"></div>
+    <div class="answer-row">
+      <div class="field">
+        <label>НОД</label>
+        <input type="number" id="gcdInput" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Числитель</label>
+        <input type="number" id="numInput" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Знаменатель</label>
+        <input type="number" id="denInput" autocomplete="off">
+      </div>
+      <button onclick="check()">Проверить</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="final hidden" id="final"></div>
+
+  <script>
+    const TOTAL = 20;
+    let current = 0;
+    let correct = 0;
+    let tasks = [];
+
+    function gcd(a, b) {
+      while (b) { [a, b] = [b, a % b]; }
+      return a;
+    }
+
+    function generateTask() {
+      let a, b, g;
+      do {
+        a = Math.floor(Math.random() * 49) + 2;
+        b = Math.floor(Math.random() * 49) + 2;
+        g = gcd(a, b);
+      } while (g === 1 || a === b);
+
+      return {
+        a, b,
+        gcd: g,
+        newNum: a / g,
+        newDen: b / g
+      };
+    }
+
+    function generateSet() {
+      const set = [];
+      const used = new Set();
+      let attempts = 0;
+      while (set.length < TOTAL && attempts < 2000) {
+        attempts++;
+        const t = generateTask();
+        const key = t.a + '/' + t.b;
+        if (used.has(key)) continue;
+        used.add(key);
+        set.push(t);
+      }
+      return set;
+    }
+
+    function start() {
+      tasks = generateSet();
+      current = 0;
+      correct = 0;
+      document.getElementById('quiz').classList.remove('hidden');
+      document.getElementById('final').classList.add('hidden');
+      showTask();
+    }
+
+    function showTask() {
+      if (current >= TOTAL) { finish(); return; }
+      const t = tasks[current];
+      document.getElementById('task').textContent = `Сократите: ${t.a} / ${t.b}`;
+      document.getElementById('progress').textContent = `Вопрос ${current + 1} из ${TOTAL} · Правильных: ${correct}`;
+      document.getElementById('gcdInput').value = '';
+      document.getElementById('numInput').value = '';
+      document.getElementById('denInput').value = '';
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('gcdInput').focus();
+    }
+
+    function check() {
+      const t = tasks[current];
+      const g = parseInt(document.getElementById('gcdInput').value);
+      const n = parseInt(document.getElementById('numInput').value);
+      const d = parseInt(document.getElementById('denInput').value);
+      const fb = document.getElementById('feedback');
+
+      if (isNaN(g) || isNaN(n) || isNaN(d)) return;
+
+      const allCorrect = (g === t.gcd && n === t.newNum && d === t.newDen);
+
+      if (allCorrect) {
+        correct++;
+        fb.textContent = '✅ Верно!';
+        fb.className = 'feedback correct';
+        current++;
+        setTimeout(() => {
+          if (current >= TOTAL) finish();
+          else showTask();
+        }, 400);
+      } else {
+        fb.textContent = `❌ Неверно. Правильно: НОД = ${t.gcd}, ${t.newNum} / ${t.newDen}`;
+        fb.className = 'feedback wrong';
+      }
+    }
+
+    function finish() {
+      document.getElementById('quiz').classList.add('hidden');
+      const final = document.getElementById('final');
+      final.classList.remove('hidden');
+      const percent = Math.round((correct / TOTAL) * 100);
+      final.innerHTML = `
+        <h2>Набор завершён!</h2>
+        <p>Правильных ответов: <b>${correct} из ${TOTAL}</b> (${percent}%)</p>
+        <button onclick="start()">Новый набор</button>
+      `;
+    }
+
+    ['gcdInput', 'numInput', 'denInput'].forEach(id => {
+      document.getElementById(id).addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') check();
+      });
+    });
+
+    start();
+  </script>
+</body>
+</html>
