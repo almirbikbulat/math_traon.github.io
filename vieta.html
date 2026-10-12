@@ -48,28 +48,11 @@
       if (Math.random() < 0.5) b = -b;
       if (a === b) b = b === 9 ? 8 : b + 1;
 
-      const type = Math.random() < 0.5 ? 1 : 2;
-
-      if (type === 1) {
-        const p = -(a + b);
-        const q = a * b;
-        const question = `x^2 ${fmt(p)}x ${fmt(q)}`;
-        const answer = `(x ${fmt(-a)})(x ${fmt(-b)})`;
-        return { question, answer };
-      } else {
-        let c = Math.floor(Math.random() * 9) + 1;
-        let d = Math.floor(Math.random() * 9) + 1;
-        if (Math.random() < 0.5) c = -c;
-        if (Math.random() < 0.5) d = -d;
-        if (c === d) d = d === 9 ? 8 : d + 1;
-
-        const p2 = c + d;
-        const q2 = -c * d;
-        const question = `${fmt(q2)} ${fmt(p2)}x - x^2`;
-        const target = `-x^2 + ${p2}*x + ${q2}`;
-        const answerDisplay = `(${fmt(c)} - x)(x ${fmt(-d)})`;
-        return { question, answer: answerDisplay, target };
-      }
+      const p = -(a + b);
+      const q = a * b;
+      const question = `x^2 ${fmt(p)}x ${fmt(q)}`;
+      const answer = `(x ${fmt(-a)})(x ${fmt(-b)})`;
+      return { question, answer };
     }
 
     function fmt(n) {
@@ -82,12 +65,7 @@
         let user = userAnswer.replace(/\s+/g, '');
         user = user.replace(/²/g, '^2');
 
-        let target;
-        if (task.target) {
-          target = task.target;
-        } else {
-          target = task.question.replace(/\s+/g, '');
-        }
+        const target = task.question.replace(/\s+/g, '');
 
         const userSimplified = math.simplify(user).toString();
         const targetSimplified = math.simplify(target).toString();
